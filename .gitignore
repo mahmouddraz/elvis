@@ -1,0 +1,31 @@
+# Environments and editors
+.env
+.venv/
+.idea/
+.vscode/
+.history/
+.DS_Store
+
+# Python bytecode and builds
+__pycache__/
+*.py[cod]
+*.so
+build/
+dist/
+*.egg-info/
+
+# Tool caches and reports
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.log
+
+# Files written by the example notebooks
+examples/output/
+

@@ -1,0 +1,134 @@
+schema_version: 1
+name: office
+description: Office car park, employees park for a working day.
+operation:
+  scheduling: uncontrolled
+  queue_length: 0
+  disconnect: at_departure
+infrastructure:
+  transformers:
+  - max_power_kw: 630
+    charging_stations:
+    - max_power_kw: 3.7
+      count: 20
+      charging_points:
+      - max_power_kw: 3.7
+demand:
+  model: weekly
+  events_per_week: 250
+  parking_hours:
+    mean: 8
+    std: 1
+    max: 24
+  soc_arrival:
+    mean: 0.5
+    std: 0.1
+  arrival_profile: [0, 0, 0, 0, 0, 0, 0, 0.09, 0.34, 0.61, 0.63, 0.7, 0.89, 0.85, 0.65, 0.5, 0.32, 0.14,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.14, 0.38, 0.52, 0.49, 0.5, 0.6, 0.63, 0.54, 0.38, 0.21, 0.09,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.14, 0.34, 0.5, 0.5, 0.49, 0.5, 0.52, 0.47, 0.36, 0.23, 0.12,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.25, 0.6, 0.61, 0.43, 0.45, 0.61, 0.7, 0.65, 0.5, 0.3, 0.14,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.14, 0.54, 0.81, 0.67, 0.72, 0.94, 1, 0.8, 0.49, 0.21, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+vehicles:
+- brand: Smart
+  model: EQ Fortwo
+  probability: 0.13290513833992096
+  battery:
+    capacity_kwh: 17.6
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Smart
+  model: EQ Forfour
+  probability: 0.07877346837944664
+  battery:
+    capacity_kwh: 17.6
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: VW
+  model: e-up!
+  probability: 0.031466156126482216
+  battery:
+    capacity_kwh: 18.7
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Hyundai
+  model: Ioniq Elektro
+  probability: 0.05234066205533597
+  battery:
+    capacity_kwh: 28
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Kia
+  model: Soul EV
+  probability: 0.10165513833992093
+  battery:
+    capacity_kwh: 30
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: BMW
+  model: i3
+  probability: 0.11709486166007906
+  battery:
+    capacity_kwh: 33.2
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: VW
+  model: e-Golf
+  probability: 0.17734066205533594
+  battery:
+    capacity_kwh: 35.8
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Nissan
+  model: Leaf
+  probability: 0.07349308300395258
+  battery:
+    capacity_kwh: 40
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Renault
+  model: Zoe
+  probability: 0.19639328063241107
+  battery:
+    capacity_kwh: 41
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Tesla
+  model: Model S
+  probability: 0.038537549407114624
+  battery:
+    capacity_kwh: 100
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+transformer_preload: 0

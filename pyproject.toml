@@ -1,0 +1,117 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "elvislis"
+version = "1.0.0"
+description = "Simulation of electric vehicle charging infrastructure: demand, scheduling and grid load"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "EnergyAIBerlin", email = "contact@energyai.berlin" }]
+requires-python = ">=3.11"
+keywords = ["electric vehicles", "charging infrastructure", "simulation", "energy"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.26",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+pandas = ["pandas>=2.1"]
+
+[project.scripts]
+elvis = "elvis.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/EnergyAIBerlin/elvis"
+Repository = "https://github.com/EnergyAIBerlin/elvis.git"
+Issues = "https://github.com/EnergyAIBerlin/elvis/issues"
+
+[dependency-groups]
+dev = [
+    "pandas>=2.1",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.100",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "pandas-stubs",
+    "types-PyYAML",
+    "pre-commit>=4.0",
+]
+notebooks = [
+    "pandas>=2.1",
+    "jupyterlab>=4.2",
+    "ipykernel>=6.29",
+    "matplotlib>=3.8",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/core", "src/elvis"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "A", "C4", "SIM", "RET", "PIE", "PT",
+    "RUF", "PL", "NPY", "PERF", "D",
+]
+ignore = [
+    "D100", "D104", "D105", "D107",  # module/package/magic/__init__ docstrings
+    "D102", "D103",                    # public methods documented where non-obvious
+    "PLR0913",                         # dataclass-like constructors
+    "PLR2004",                         # magic values in physics formulas
+    "A002",                            # `id` is the domain term for events and nodes
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "PLR2004", "PLC0415", "PT018"]
+"examples/**" = ["D", "T201", "PLR2004"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/core", "src/elvis"]
+strict = true
+warn_unreachable = true
+disallow_any_generics = false
+
+[[tool.mypy.overrides]]
+module = ["core.*", "elvis.*"]
+# Sessions are Optional on idle points but only read on occupied ones; numpy returns Any.
+disable_error_code = ["union-attr", "no-any-return"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "src"]
+addopts = ["--strict-markers", "--strict-config", "-ra", "--doctest-modules", "--import-mode=importlib"]
+markers = ["slow: long-running simulations (deselect with -m 'not slow')"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["core", "elvis"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "\\.\\.\\."]
+
+[tool.bandit]
+# assert guards internal invariants (e.g. a session exists on an occupied point)
+skips = ["B101"]

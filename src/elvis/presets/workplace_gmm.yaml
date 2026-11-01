@@ -1,0 +1,387 @@
+schema_version: 1
+name: workplace_gmm
+description: Workplace with arrivals and parking times from a fitted Gaussian mixture.
+operation:
+  scheduling: uncontrolled
+  queue_length: 0
+  disconnect: at_departure
+infrastructure:
+  transformers:
+  - max_power_kw: 74
+    charging_stations:
+    - max_power_kw: 3.7
+      count: 20
+      charging_points:
+      - max_power_kw: 3.7
+demand:
+  model: gmm
+  events_per_week: 2000
+  soc_arrival:
+    mean: 0.5
+    std: 0.2
+  min_parking_hours: 0.167
+  max_parking_hours: 24
+  day_shift_hours: 5
+  components:
+  - weight: 0.030619767371488704
+    mean: [16.747934389366154, 3.9754662486336882]
+    covariance:
+    - [16.99865592668439, -3.185957487935224]
+    - [-3.1859574879352244, 19.203708910299856]
+  - weight: 0.14492308977136886
+    mean: [5.851808337667644, 3.141707279148557]
+    covariance:
+    - [9.163783768881485, -1.782788337380871]
+    - [-1.782788337380871, 3.4929815443429333]
+  - weight: 0.030619767371488704
+    mean: [40.74793438936615, 3.9754662486336882]
+    covariance:
+    - [16.99865592668439, -3.185957487935224]
+    - [-3.1859574879352244, 19.203708910299856]
+  - weight: 0.14492308977136886
+    mean: [29.851808337667645, 3.141707279148557]
+    covariance:
+    - [9.163783768881485, -1.782788337380871]
+    - [-1.782788337380871, 3.4929815443429333]
+  - weight: 0.030619767371488704
+    mean: [64.74793438936615, 3.9754662486336882]
+    covariance:
+    - [16.99865592668439, -3.185957487935224]
+    - [-3.1859574879352244, 19.203708910299856]
+  - weight: 0.14492308977136886
+    mean: [53.85180833766764, 3.141707279148557]
+    covariance:
+    - [9.163783768881485, -1.782788337380871]
+    - [-1.782788337380871, 3.4929815443429333]
+  - weight: 0.030619767371488704
+    mean: [88.74793438936615, 3.9754662486336882]
+    covariance:
+    - [16.99865592668439, -3.185957487935224]
+    - [-3.1859574879352244, 19.203708910299856]
+  - weight: 0.14492308977136886
+    mean: [77.85180833766765, 3.141707279148557]
+    covariance:
+    - [9.163783768881485, -1.782788337380871]
+    - [-1.782788337380871, 3.4929815443429333]
+  - weight: 0.030619767371488704
+    mean: [112.74793438936615, 3.9754662486336882]
+    covariance:
+    - [16.99865592668439, -3.185957487935224]
+    - [-3.1859574879352244, 19.203708910299856]
+  - weight: 0.14492308977136886
+    mean: [101.85180833766765, 3.141707279148557]
+    covariance:
+    - [9.163783768881485, -1.782788337380871]
+    - [-1.782788337380871, 3.4929815443429333]
+  - weight: 0.013714285714285717
+    mean: [140.33333333333331, 7.042002314814813]
+    covariance:
+    - [21.973843592592598, -26.568094328703705]
+    - [-26.568094328703705, 40.339569891326946]
+  - weight: 0.04742857142857143
+    mean: [130.96184738955824, 2.0811044176706828]
+    covariance:
+    - [24.81450923373817, -2.0932361433686544]
+    - [-2.0932361433686544, 3.098990930045932]
+  - weight: 0.013714285714285717
+    mean: [164.33333333333331, 7.042002314814813]
+    covariance:
+    - [21.973843592592598, -26.568094328703705]
+    - [-26.568094328703705, 40.339569891326946]
+  - weight: 0.04742857142857143
+    mean: [154.96184738955824, 2.0811044176706828]
+    covariance:
+    - [24.81450923373817, -2.0932361433686544]
+    - [-2.0932361433686544, 3.098990930045932]
+vehicles:
+- brand: Renault
+  model: "Zo\xE9"
+  probability: 0.1437716019458256
+  battery:
+    capacity_kwh: 52
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Volkswagen
+  model: e-Golf
+  probability: 0.08801479138478754
+  battery:
+    capacity_kwh: 35.8
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Smart
+  model: Fortwo ED
+  probability: 0.07529141343070092
+  battery:
+    capacity_kwh: 16.7
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Tesla
+  model: Model 3
+  probability: 0.08530829118058103
+  battery:
+    capacity_kwh: 76
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: BMW
+  model: i3 BEV
+  probability: 0.07043478259663118
+  battery:
+    capacity_kwh: 37.9
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Hyundai
+  model: Kona Electric
+  probability: 0.06976447027827398
+  battery:
+    capacity_kwh: 64
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Volkswagen
+  model: e-up!
+  probability: 0.06156371993992887
+  battery:
+    capacity_kwh: 32.3
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Volkswagen
+  model: ID,3
+  probability: 0.06324846204142037
+  battery:
+    capacity_kwh: 77
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Audi
+  model: e-tron
+  probability: 0.04074194116197375
+  battery:
+    capacity_kwh: 85
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Smart
+  model: Forfour ED
+  probability: 0.03223339585158563
+  battery:
+    capacity_kwh: 16.7
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Nissan
+  model: Leaf
+  probability: 0.027999960763938327
+  battery:
+    capacity_kwh: 56
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Kia
+  model: Soul EV
+  probability: 0.02237159488943915
+  battery:
+    capacity_kwh: 39.2
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Opel
+  model: Corsa-e
+  probability: 0.02554343367512133
+  battery:
+    capacity_kwh: 45
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Mini
+  model: Cooper SE Electric
+  probability: 0.02219933081981128
+  battery:
+    capacity_kwh: 28.9
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Hyundai
+  model: Ioniq Electric
+  probability: 0.01612430095330172
+  battery:
+    capacity_kwh: 38.3
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: "\u0160koda"
+  model: Citigo-e
+  probability: 0.018088051965749582
+  battery:
+    capacity_kwh: 36.8
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Volkswagen
+  model: ID,4
+  probability: 0.014570025693931997
+  battery:
+    capacity_kwh: 77
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Peugeot
+  model: e-208
+  probability: 0.015156363405901596
+  battery:
+    capacity_kwh: 45
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Kia
+  model: Niro EV
+  probability: 0.015939061790012674
+  battery:
+    capacity_kwh: 64
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Mercedes-Benz
+  model: EQC
+  probability: 0.014621446023409194
+  battery:
+    capacity_kwh: 80
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Porsche
+  model: Taycan
+  probability: 0.012304301297657819
+  battery:
+    capacity_kwh: 71
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Fiat
+  model: 500e
+  probability: 0.008540675038682137
+  battery:
+    capacity_kwh: 37.3
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Tesla
+  model: Model S
+  probability: 0.00846688127460483
+  battery:
+    capacity_kwh: 115
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Mazda
+  model: MX-30
+  probability: 0.011710207942663628
+  battery:
+    capacity_kwh: 88
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Seat
+  model: Mii Electric
+  probability: 0.009364857094785238
+  battery:
+    capacity_kwh: 32.3
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Peugeot
+  model: e-2008
+  probability: 0.006671012879070754
+  battery:
+    capacity_kwh: 45
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Jaguar
+  model: I-Pace
+  probability: 0.007642418960918372
+  battery:
+    capacity_kwh: 84.7
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Tesla
+  model: Model X
+  probability: 0.005887792827378768
+  battery:
+    capacity_kwh: 90
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+- brand: Renault
+  model: Twingo Z,E,
+  probability: 0.006425412891912656
+  battery:
+    capacity_kwh: 21.3
+    max_charge_power_kw: 150
+    min_charge_power_kw: 0
+    efficiency: 1
+    start_power_degradation: 1
+    max_degradation_level: 0
+transformer_preload: 0
