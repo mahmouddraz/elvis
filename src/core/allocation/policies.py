@@ -34,7 +34,7 @@ class Unconstrained(Policy):
                     continue
                 session = server.session
                 rate = min(
-                    session.max_rate_at(session.level),
+                    session.max_supply_rate(),
                     server.rate_to_reach(session.request.target_level, context.step_hours),
                     server.max_rate,
                 )

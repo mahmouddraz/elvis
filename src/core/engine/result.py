@@ -41,8 +41,11 @@ class Result:
         buffer_rates: Array ``(steps, buffers)``; positive values fill, negative drain.
         rejections: Arrivals that found neither a free server nor queue space.
         sessions: Service interval of every request that was served.
-        delivered: Quantity delivered per request id, for every request that was connected
-            to a server (zero if it never received a rate).
+        delivered: Quantity received by each request (after the profile's efficiency), per
+            request id, for every request that was connected to a server (zero if it never
+            received a rate). Server rates in :attr:`rates` are on the supply side.
+        unservable: Requests connected to a server whose profile accepts no rate there at
+            their initial level (e.g. a vehicle without DC inlet at a DC point).
     """
 
     def __init__(
@@ -55,6 +58,7 @@ class Result:
         rejections: int,
         sessions: list[SessionRecord],
         delivered: dict[int, float] | None = None,
+        unservable: int = 0,
     ) -> None:
         self.realisation = realisation
         self.server_ids = server_ids
@@ -64,6 +68,7 @@ class Result:
         self.rejections = rejections
         self.sessions = sessions
         self.delivered = delivered or {}
+        self.unservable = unservable
 
     @property
     def step_hours(self) -> float:
@@ -115,8 +120,13 @@ class Result:
 
     @property
     def total_quantity(self) -> float:
-        """Quantity delivered to requests."""
+        """Quantity supplied by all servers (supply side, before service losses)."""
         return float(self.total_rate.sum() * self.step_hours)
+
+    @property
+    def received_quantity(self) -> float:
+        """Quantity that reached the requests (after service losses)."""
+        return float(sum(self.delivered.values()))
 
     @property
     def peak_rate(self) -> float:

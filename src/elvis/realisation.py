@@ -46,6 +46,11 @@ class Realisation:
     def seed(self) -> int | None:
         return self.core.seed
 
+    @property
+    def draw_stats(self) -> dict[str, Any]:
+        """Vehicle draw counts of ``model: empirical`` demand (empty for other models)."""
+        return dict(self.core.info)
+
     @classmethod
     def sample(
         cls, scenario: Scenario, grid: TimeGrid, seed: int | np.random.Generator | None = None
@@ -61,7 +66,8 @@ class Realisation:
     def with_scenario(self, scenario: Scenario) -> Realisation:
         """The same events under a different scenario, e.g. another scheduling policy."""
         return Realisation(
-            scenario, CoreRealisation(scenario.system, self.grid, self.events, self.seed)
+            scenario,
+            CoreRealisation(scenario.system, self.grid, self.events, self.seed, self.core.info),
         )
 
     def preload_kw(self) -> np.ndarray:
@@ -82,6 +88,7 @@ class Realisation:
                 "resolution": format_duration(self.grid.resolution),
             },
             "seed": self.seed,
+            "draw_stats": self.draw_stats,
             "events": [event.to_record() for event in self.events],
         }
 
@@ -91,7 +98,10 @@ class Realisation:
         grid = TimeGrid.create(**record["grid"])
         vehicles = {vehicle.name: vehicle for vehicle in scenario.vehicles}
         events = tuple(Request.from_record(e, vehicles) for e in record["events"])
-        return cls(scenario, CoreRealisation(scenario.system, grid, events, record.get("seed")))
+        info = record.get("draw_stats", {})
+        return cls(
+            scenario, CoreRealisation(scenario.system, grid, events, record.get("seed"), info)
+        )
 
     def save(self, path: str | Path) -> None:
         """Write JSON; a ``.gz`` suffix compresses it."""

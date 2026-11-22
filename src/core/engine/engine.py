@@ -24,14 +24,11 @@ import numpy as np
 from core.allocation import Allocation, StepContext
 from core.engine.queue import WaitingQueue
 from core.engine.result import Result, SessionRecord
-from core.network.runtime import Network, Server
-from core.requests import Request
+from core.network.runtime import Network, Server, Session
+from core.requests import LEVEL_TOLERANCE_DECIMALS, Request
 from core.system import Realisation
 
 logger = logging.getLogger(__name__)
-
-LEVEL_TOLERANCE_DECIMALS = 3
-"""A request counts as complete once its level rounded to this many decimals hits the target."""
 
 ProgressCallback = Callable[[float], None]
 
@@ -54,6 +51,8 @@ class Simulation:
         self._occupied: list[Server] = []
         self._next_request = 0
         self._rejections = 0
+        self._unservable = 0
+        self._server_kinds = {server.kind for server in self.network.servers}
         self._sessions: dict[int, SessionRecord] = {}
         self._delivered: dict[int, float] = {}
         self._rates = np.zeros((self.grid.num_steps, len(self.network.servers)))
@@ -92,6 +91,7 @@ class Simulation:
             self._rejections,
             list(self._sessions.values()),
             self._delivered,
+            self._unservable,
         )
 
     # -- step phases -----------------------------------------------------------------------
@@ -128,6 +128,10 @@ class Simulation:
         while self._next_request < len(requests) and requests[self._next_request].arrival <= now:
             request = requests[self._next_request]
             self._next_request += 1
+            if self.release_at_target and not self.can_be_served(request):
+                self._rejections += 1
+                self._unservable += 1
+                continue
             if is_open and self._free:
                 server = self.network.servers[heapq.heappop(self._free)]
                 self.connect(server, request)
@@ -138,8 +142,20 @@ class Simulation:
                 self._rejections += 1
                 logger.debug("%s: request %d rejected", now, request.id)
 
+    def can_be_served(self, request: Request) -> bool:
+        """Whether some server of the network accepts a rate > 0 for the request on arrival."""
+        level = request.initial_level
+        if level >= request.target_level:
+            return True
+        return any(
+            Session(request, level, kind).max_rate_at(level) > 0 for kind in self._server_kinds
+        )
+
     def connect(self, server: Server, request: Request) -> None:
         server.connect(request)
+        session = server.session
+        if session.level < request.target_level and session.max_rate_at(session.level) <= 0:
+            self._unservable += 1
         self._delivered[request.id] = 0.0
 
     def track_sessions(self, step: int, allocation: Allocation) -> None:
@@ -156,8 +172,7 @@ class Simulation:
         step_hours = self.grid.step_hours
         for server in self._occupied:
             rate = allocation.rates[server.index]
-            server.serve(rate, step_hours)
-            self._delivered[server.session.request.id] += rate * step_hours
+            self._delivered[server.session.request.id] += server.serve(rate, step_hours)
 
     def operate_buffers(self, step: int, allocation: Allocation) -> None:
         for column, buffer in enumerate(self.network.buffers):

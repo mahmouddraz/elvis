@@ -20,7 +20,7 @@ from core.errors import ConfigurationError
 from core.system import OpenHours, System
 from core.system import Operation as CoreOperation
 from core.time.series import TimeSeries
-from elvis.demand import ChargingDemand
+from elvis.demand import ChargingDemand, EmpiricalChargingDemand, demand_from_config
 from elvis.infrastructure import InfrastructureSpec
 from elvis.vehicle import VehicleType
 
@@ -128,7 +128,8 @@ class Scenario:
         name: Short identifier, e.g. ``"office"``.
         infrastructure: Transformers, stations and charging points.
         vehicles: Vehicle types that may arrive.
-        demand: Arrival times, parking durations and arrival SOC.
+        demand: Arrival times, parking durations and arrival SOC (parametric), or measured
+            sessions resampled jointly (``model: empirical``).
         operation: Scheduling, queueing and opening hours.
         transformer_preload: Other load on the transformer in kW (default: none).
         emission_factors: Grid emission factor in g CO2 per kWh (default: not tracked).
@@ -138,7 +139,7 @@ class Scenario:
     name: str
     infrastructure: InfrastructureSpec
     vehicles: tuple[VehicleType, ...]
-    demand: ChargingDemand
+    demand: ChargingDemand | EmpiricalChargingDemand
     operation: Operation = field(default_factory=Operation)
     transformer_preload: TimeSeries | None = None
     emission_factors: TimeSeries | None = None
@@ -150,13 +151,17 @@ class Scenario:
         names = [vehicle.name for vehicle in self.vehicles]
         if len(set(names)) != len(names):
             raise ConfigurationError(f"scenario {self.name!r}: vehicle names must be unique")
+        if isinstance(self.demand, EmpiricalChargingDemand):
+            self.demand.for_vehicles(self.vehicles, self.infrastructure.charging_points)
 
     @cached_property
     def system(self) -> System:
         """The equivalent domain-agnostic :class:`core.System`."""
         return System(
             network=self.infrastructure.to_network(),
-            demand=self.demand.for_vehicles(self.vehicles),
+            demand=self.demand.for_vehicles(self.vehicles, self.infrastructure.charging_points)
+            if isinstance(self.demand, EmpiricalChargingDemand)
+            else self.demand.for_vehicles(self.vehicles),
             operation=self.operation.to_core(),
             background=self.transformer_preload,
         )
@@ -199,7 +204,9 @@ class Scenario:
                 description=str(raw.get("description", "")),
                 infrastructure=InfrastructureSpec.from_config(raw["infrastructure"]),
                 vehicles=tuple(VehicleType.from_config(v) for v in raw["vehicles"]),
-                demand=ChargingDemand.from_config(raw["demand"]),
+                demand=demand_from_config(
+                    raw["demand"], None if source is None else Path(source).parent
+                ),
                 operation=Operation.from_config(raw.get("operation", {})),
                 transformer_preload=TimeSeries.from_config(
                     raw.get("transformer_preload"), name="transformer_preload"

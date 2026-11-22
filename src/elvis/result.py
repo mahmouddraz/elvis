@@ -51,7 +51,7 @@ class ChargingResult:
 
     @property
     def load_profile_kw(self) -> np.ndarray:
-        """Total charging power of all charging points per step."""
+        """Total charging power of all charging points per step (grid side, with losses)."""
         return self.core.total_rate
 
     @property
@@ -85,14 +85,39 @@ class ChargingResult:
         return self.core.rejections
 
     @property
+    def unservable_events(self) -> int:
+        """Vehicles connected to a point they cannot charge at (no DC inlet at a DC point)."""
+        return self.core.unservable
+
+    @property
     def rejection_rate(self) -> float:
         """Share of arriving vehicles that could not be served at all."""
         return self.core.rejection_rate
 
     @property
+    def draw_stats(self) -> dict[str, Any]:
+        """Vehicle draw counts of ``model: empirical`` demand (see :class:`Realisation`)."""
+        return self.realisation.draw_stats
+
+    @property
     def total_energy_kwh(self) -> float:
-        """Energy delivered to vehicles."""
+        """Energy drawn by the charging points (grid side); same as :attr:`grid_energy_kwh`."""
         return self.core.total_quantity
+
+    @property
+    def grid_energy_kwh(self) -> float:
+        """Energy drawn by the charging points from the grid, including charging losses."""
+        return self.core.total_quantity
+
+    @property
+    def battery_energy_kwh(self) -> float:
+        """Energy stored in the vehicle batteries: grid energy times battery efficiency."""
+        return self.core.received_quantity
+
+    @property
+    def charging_losses_kwh(self) -> float:
+        """Grid energy minus battery energy."""
+        return self.grid_energy_kwh - self.battery_energy_kwh
 
     @property
     def peak_load_kw(self) -> float:
@@ -147,7 +172,10 @@ class ChargingResult:
             "events": self.num_events,
             "rejections": self.rejections,
             "rejection_rate": self.rejection_rate,
+            "unservable_events": self.unservable_events,
             "energy_kwh": self.total_energy_kwh,
+            "grid_energy_kwh": self.grid_energy_kwh,
+            "battery_energy_kwh": self.battery_energy_kwh,
             "peak_load_kw": self.peak_load_kw,
             "simultaneity_factor": self.simultaneity_factor(),
             "mean_charging_hours": self.mean_charging_hours(),

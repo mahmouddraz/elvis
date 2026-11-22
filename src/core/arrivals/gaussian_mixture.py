@@ -13,6 +13,7 @@ from typing import Any, ClassVar
 
 import numpy as np
 
+from core.arrivals.weekly_profile import check_arrival_count
 from core.config.validation import ProblemCollector
 from core.errors import ConfigurationError
 from core.random.samplers import Rng
@@ -41,7 +42,8 @@ class GaussianMixtureArrivals:
     """Arrival time and dwell time from a 2-D Gaussian mixture fitted on weekly data.
 
     Attributes:
-        arrivals_per_week: Number of arrivals sampled per week.
+        arrivals_per_week: Number of arrivals sampled per week (the mean, if
+            ``arrival_count`` is ``"poisson"``).
         components: The mixture components.
         min_dwell_hours: Draws with shorter dwell times are replaced by fresh draws.
         max_dwell_hours: Longer dwell times are clipped.
@@ -49,6 +51,9 @@ class GaussianMixtureArrivals:
             hours within each day (so a "day" can start at e.g. 19:00 and overnight arrivals
             are not split at midnight). Draws are shifted forward again, wrapping within
             their day.
+        arrival_count: ``"fixed"`` (default): exactly ``arrivals_per_week`` draws per week.
+            ``"poisson"``: the count of each week is drawn from a Poisson distribution with
+            mean ``arrivals_per_week``.
     """
 
     process: ClassVar[str] = "gaussian_mixture"
@@ -58,10 +63,12 @@ class GaussianMixtureArrivals:
     min_dwell_hours: float = 0.167
     max_dwell_hours: float = 24.0
     day_shift_hours: float = 5.0
+    arrival_count: str = "fixed"
 
     def __post_init__(self) -> None:
         problems = ProblemCollector("gaussian_mixture arrivals")
         problems.non_negative("arrivals_per_week", self.arrivals_per_week)
+        check_arrival_count(problems, self.arrival_count)
         weights = [component.weight for component in self.components]
         if not self.components or not 0.99 < sum(weights) < 1.01:
             problems.add("component weights must sum to 1 (1 % tolerance)")
@@ -87,7 +94,12 @@ class GaussianMixtureArrivals:
         steps_per_hour = 1 / grid.step_hours
         weeks = []
         for week in range(_weeks_to_sample(grid)):
-            draws = self._draw(rng, self.arrivals_per_week)
+            count = (
+                int(rng.poisson(self.arrivals_per_week))
+                if self.arrival_count == "poisson"
+                else self.arrivals_per_week
+            )
+            draws = self._draw(rng, count)
             for i in np.flatnonzero(draws[:, 1] < self.min_dwell_hours):
                 draws[i] = pool.take()
             draws[:, 0] += week * HOURS_PER_WEEK
@@ -113,7 +125,10 @@ class GaussianMixtureArrivals:
         optional = ("min_dwell_hours", "max_dwell_hours", "day_shift_hours")
         required = ("process", "arrivals_per_week", "components")
         ProblemCollector.reject_unknown_keys(
-            "gaussian_mixture arrivals", raw, required + optional, required=required
+            "gaussian_mixture arrivals",
+            raw,
+            (*required, *optional, "arrival_count"),
+            required=required,
         )
         components = []
         for entry in raw["components"]:
@@ -138,12 +153,17 @@ class GaussianMixtureArrivals:
             arrivals_per_week=int(raw["arrivals_per_week"]),
             components=tuple(components),
             **{key: float(raw[key]) for key in optional if key in raw},
+            arrival_count=raw.get("arrival_count", "fixed"),
         )
 
     def to_config(self) -> dict[str, Any]:
-        return {
+        config: dict[str, Any] = {
             "process": self.process,
             "arrivals_per_week": self.arrivals_per_week,
+        }
+        if self.arrival_count != "fixed":
+            config["arrival_count"] = self.arrival_count
+        return config | {
             "min_dwell_hours": self.min_dwell_hours,
             "max_dwell_hours": self.max_dwell_hours,
             "day_shift_hours": self.day_shift_hours,
