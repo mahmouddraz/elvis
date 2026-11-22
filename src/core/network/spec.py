@@ -25,11 +25,15 @@ class ServerSpec:
         max_rate: Highest service rate.
         min_rate: Lowest non-zero service rate (informational; not enforced yet).
         id: Optional identifier; generated if omitted.
+        kind: Optional tag of the server type (e.g. ``"ac"`` or ``"dc"``). A profile with a
+            ``rate_curve(kind)`` method may then apply a kind-specific rate limit; ``None``
+            always uses the profile's ``max_rate_at``.
     """
 
     max_rate: float
     min_rate: float = 0.0
     id: str | None = None
+    kind: str | None = None
 
     def __post_init__(self) -> None:
         check_rate_limits("server", self.min_rate, self.max_rate)

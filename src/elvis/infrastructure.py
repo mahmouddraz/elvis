@@ -20,6 +20,9 @@ from core.config.validation import ProblemCollector
 from core.errors import ConfigurationError
 from core.network.spec import BufferSpec, NetworkSpec, NodeSpec, ServerSpec
 
+#: Allowed charging point types; ``None`` means unspecified.
+POINT_TYPES = (None, "ac", "dc")
+
 
 @dataclass(frozen=True, slots=True)
 class ChargingPointSpec:
@@ -28,21 +31,32 @@ class ChargingPointSpec:
     Attributes:
         max_power_kw: Highest power the connector delivers.
         min_power_kw: Lowest non-zero power the connector delivers.
+        type: ``"ac"`` (vehicle power also limited by its on-board charger, see
+            :class:`elvis.vehicle.EVBattery`), ``"dc"``, or ``None`` (unspecified: only the
+            battery's SOC curve applies, as for DC).
     """
 
     max_power_kw: float
     min_power_kw: float = 0.0
+    type: str | None = None
 
     def __post_init__(self) -> None:
         _check_power_limits("charging point", self.min_power_kw, self.max_power_kw)
+        if self.type not in POINT_TYPES:
+            raise ConfigurationError(
+                f"charging point: type must be 'ac' or 'dc', got {self.type!r}"
+            )
 
     @classmethod
     def from_config(cls, raw: dict[str, Any]) -> ChargingPointSpec:
-        _reject_unknown("charging point", raw, ("max_power_kw", "min_power_kw"))
+        _reject_unknown("charging point", raw, ("max_power_kw", "min_power_kw", "type"))
         return cls(**raw)
 
     def to_config(self) -> dict[str, Any]:
-        return _limits_config(self)
+        config = _limits_config(self)
+        if self.type is not None:
+            config["type"] = self.type
+        return config
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,7 +233,12 @@ class InfrastructureSpec:
                 for point in station.charging_points:
                     point_number += 1
                     servers.append(
-                        ServerSpec(point.max_power_kw, point.min_power_kw, f"cp-{point_number}")
+                        ServerSpec(
+                            point.max_power_kw,
+                            point.min_power_kw,
+                            f"cp-{point_number}",
+                            point.type,
+                        )
                     )
                 stations.append(
                     NodeSpec(

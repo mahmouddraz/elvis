@@ -23,28 +23,60 @@ class Session:
 
     The profile's capacity and rate limit are cached here because they are read for every
     occupied server in every step.
+
+    The rate limit is bound when the session starts: if the server has a ``kind`` and the
+    profile a method ``rate_curve(kind) -> Callable[[float], float]``, that curve is used;
+    otherwise ``profile.max_rate_at``. Rate limits of the profile apply to the quantity that
+    reaches the request.
+
+    ``efficiency`` (optional profile attribute, default 1) is the one-way service efficiency:
+    a server rate ``r`` raises the request's quantity at ``r * efficiency``. Server rates, and
+    so all network limits and results, are on the supply side.
     """
 
     request: Request
     level: float
+    kind: str | None = None
     capacity: float = field(init=False)
+    efficiency: float = field(init=False)
     max_rate_at: Callable[[float], float] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        self.capacity = self.request.profile.capacity
-        self.max_rate_at = self.request.profile.max_rate_at
+        profile = self.request.profile
+        self.capacity = profile.capacity
+        self.efficiency = float(getattr(profile, "efficiency", 1.0))
+        rate_curve = getattr(profile, "rate_curve", None)
+        if self.kind is None or rate_curve is None:
+            self.max_rate_at = profile.max_rate_at
+        else:
+            self.max_rate_at = rate_curve(self.kind)
+
+    def max_supply_rate(self) -> float:
+        """Highest server rate the request accepts at its current level."""
+        return self.max_rate_at(self.level) / self.efficiency
 
 
 class Server:
     """Serves at most one request at a time."""
 
-    __slots__ = ("ancestors", "id", "index", "max_rate", "min_rate", "parent", "root", "session")
+    __slots__ = (
+        "ancestors",
+        "id",
+        "index",
+        "kind",
+        "max_rate",
+        "min_rate",
+        "parent",
+        "root",
+        "session",
+    )
 
     def __init__(self, spec: ServerSpec, id: str, index: int, parent: Node) -> None:
         self.id = id
         self.index = index
         self.max_rate = spec.max_rate
         self.min_rate = spec.min_rate
+        self.kind = spec.kind
         self.parent = parent
         self.ancestors: tuple[Node, ...] = (parent, *parent.ancestors)
         self.root: Node = self.ancestors[-1]
@@ -54,7 +86,7 @@ class Server:
         return f"Server({self.id!r})"
 
     def connect(self, request: Request) -> None:
-        self.session = Session(request, request.initial_level)
+        self.session = Session(request, request.initial_level, self.kind)
 
     def disconnect(self) -> Session:
         session = self.session
@@ -67,21 +99,26 @@ class Server:
         session = self.session
         if session is None:
             return 0.0
-        return floor_to(min(self.max_rate, session.max_rate_at(session.level)))
+        return floor_to(min(self.max_rate, session.max_supply_rate()))
 
     def rate_to_reach(self, level: float, step_hours: float) -> float:
-        """Average rate that brings the current request to ``level`` within one step."""
+        """Average server rate that brings the current request to ``level`` within one step."""
         session = self.session
         assert session is not None
         if session.level > level:
             return 0.0
-        return (level - session.level) * session.capacity / step_hours
+        return (level - session.level) * session.capacity / step_hours / session.efficiency
 
-    def serve(self, rate: float, step_hours: float) -> None:
-        """Apply ``rate`` for one step; the level saturates at 1."""
+    def serve(self, rate: float, step_hours: float) -> float:
+        """Apply server ``rate`` for one step; return the quantity that reached the request.
+
+        The level saturates at 1.
+        """
         session = self.session
         assert session is not None
-        session.level = min(1, session.level + rate * step_hours / session.capacity)
+        received = rate * session.efficiency * step_hours
+        session.level = min(1, session.level + received / session.capacity)
+        return received
 
 
 class Node:

@@ -15,6 +15,9 @@ from typing import Any, Protocol, runtime_checkable
 
 from core.errors import ConfigurationError
 
+LEVEL_TOLERANCE_DECIMALS = 3
+"""A request counts as complete once its level rounded to this many decimals hits the target."""
+
 
 @runtime_checkable
 class ServiceProfile(Protocol):

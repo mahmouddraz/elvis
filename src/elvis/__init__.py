@@ -18,7 +18,7 @@ from importlib.metadata import PackageNotFoundError, version
 from core.errors import ConfigurationError, CoreError, SimulationError
 from core.requests import Request
 from core.time import TimeGrid, TimeSeries
-from elvis.demand import ChargingDemand
+from elvis.demand import ChargingDemand, EmpiricalChargingDemand, MeasuredSession
 from elvis.infrastructure import (
     ChargingPointSpec,
     ChargingStationSpec,
@@ -52,7 +52,9 @@ __all__ = [
     "ConfigurationError",
     "EVBattery",
     "ElvisError",
+    "EmpiricalChargingDemand",
     "InfrastructureSpec",
+    "MeasuredSession",
     "OpeningHours",
     "Operation",
     "Realisation",

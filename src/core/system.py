@@ -89,9 +89,19 @@ class System:
         return dataclasses.replace(self, **changes)
 
     def realise(self, grid: TimeGrid, seed: int | np.random.Generator | None = None) -> Realisation:
-        """Sample requests for ``grid``; ``seed`` may be an int or a generator."""
-        requests = tuple(self.demand.generate(grid, make_rng(seed)))
-        return Realisation(self, grid, requests, seed if isinstance(seed, int) else None)
+        """Sample requests for ``grid``; ``seed`` may be an int or a generator.
+
+        A demand model with ``generate_with_info`` also fills :attr:`Realisation.info`.
+        """
+        rng = make_rng(seed)
+        generate_with_info = getattr(self.demand, "generate_with_info", None)
+        if generate_with_info is None:
+            requests, info = self.demand.generate(grid, rng), {}
+        else:
+            requests, info = generate_with_info(grid, rng)
+        return Realisation(
+            self, grid, tuple(requests), seed if isinstance(seed, int) else None, info
+        )
 
 
 @dataclass(frozen=True)
@@ -106,12 +116,14 @@ class Realisation:
         grid: The simulated time steps.
         requests: Requests sorted by arrival.
         seed: Seed the requests were sampled with, if known.
+        info: Sampling diagnostics from the demand model (e.g. draw counts); may be empty.
     """
 
     system: System
     grid: TimeGrid
     requests: tuple[Request, ...]
     seed: int | None = None
+    info: Mapping[str, Any] = field(default_factory=dict, compare=False)
 
     def __post_init__(self) -> None:
         arrivals = [request.arrival for request in self.requests]
